@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-data = pd.read_csv("test.csv",delimiter=";")
+data = pd.read_csv("salarios.csv",delimiter=";")
 
 sex = data['sx'].values
 rank = data['rk'].values
