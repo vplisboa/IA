@@ -3,100 +3,100 @@ import random
 import math
 import operator
  
-def loadDataset(filename, split, trainingSet=[] , testSet=[]):
+def carregaDataset(nomeArquivo, divisor, conjuntoTreinamento=[] , conjuntoTeste=[]):
     
     # le o dataset
-    with open(filename) as csvfile:
+    with open(nomeArquivo) as arquivocsv:
 
-        lines = csv.reader(csvfile)
-        dataset = list(lines)
+        linhas = csv.reader(arquivocsv)
+        dataset = list(linhas)
         
-        for x in range(len(dataset)-1):
+        for x in range(len(dataset)):
         
             for y in range(4):
                 dataset[x][y] = float(dataset[x][y])
             
-            if random.random() < split:
-                trainingSet.append(dataset[x])
+            if random.random() < divisor:
+                conjuntoTreinamento.append(dataset[x])
             else:
-                testSet.append(dataset[x])
+                conjuntoTeste.append(dataset[x])
  
  
 # distancia euclidiana entre dois pontos
-def euclideanDistance(data1, data2, length):
+def distanciaEuclidiana(entrada1, entrada2, tamanho):
     
-    distance = 0
-    for x in range(length):
-        distance += pow((data1[x] - data2[x]), 2)
+    distancia = 0
+    for x in range(tamanho):
+        distancia += pow((entrada1[x] - entrada2[x]), 2)
     
-    return math.sqrt(distance)
+    return math.sqrt(distancia)
  
-def getNeighbors(trainingSet, testInstance, k):
+def recuperarVizinhos(conjuntoTreinamento, instanciaTeste, k):
     
-    distances = []
-    length = len(testInstance)-1
+    distancias = []
+    tamanho = len(instanciaTeste)-1
     
-    for x in range(len(trainingSet)):
-        dist = euclideanDistance(testInstance, trainingSet[x], length)
-        distances.append((trainingSet[x], dist))
+    for x in range(len(conjuntoTreinamento)):
+        dist = distanciaEuclidiana(instanciaTeste, conjuntoTreinamento[x], tamanho)
+        distancias.append((conjuntoTreinamento[x], dist))
     
-    distances.sort(key=operator.itemgetter(1))
+    distancias.sort(key=operator.itemgetter(1))
     
-    neighbors = []
+    vizinhos = []
     
     for x in range(k):
-        neighbors.append(distances[x][0])
-    return neighbors
+        vizinhos.append(distancias[x][0])
+    return vizinhos
  
-def getResponse(neighbors):
+def obterResposta(vizinhos):
     
-    classVotes = {}
+    votosNaClasse = {}
     
-    for x in range(len(neighbors)):
-        response = neighbors[x][-1]
-        if response in classVotes:
-            classVotes[response] += 1
+    for x in range(len(vizinhos)):
+        resposta = vizinhos[x][-1]
+        if resposta in votosNaClasse:
+            votosNaClasse[resposta] += 1
         else:
-            classVotes[response] = 1
+            votosNaClasse[resposta] = 1
     
-    sortedVotes = sorted(classVotes.iteritems(), key=operator.itemgetter(1), reverse=True)
+    votosOrdenados = sorted(votosNaClasse.iteritems(), key=operator.itemgetter(1), reverse=True)
     
-    return sortedVotes[0][0]
+    return votosOrdenados[0][0]
  
-def getAccuracy(testSet, predictions):
-    correct = 0
+def obterPrecisao(conjuntoTeste, predicoes):
+    previsoesCorretas = 0
     
-    for x in range(len(testSet)):
-        if testSet[x][-1] == predictions[x]:
-            correct += 1
+    for x in range(len(conjuntoTeste)):
+        if conjuntoTeste[x][-1] == predicoes[x]:
+            previsoesCorretas += 1
     
-    return (correct/float(len(testSet))) * 100.0
+    return (previsoesCorretas/float(len(conjuntoTeste))) * 100.0
     
 def main():
     
-    trainingSet=[]
-    testSet=[]
+    conjuntoTreinamento=[]
+    conjuntoTeste=[]
     #treinar o dataset
-    split = 0.80 
+    divisor = 0.80 
     
-    loadDataset('iris.csv', split, trainingSet, testSet)
+    carregaDataset('iris.csv', divisor, conjuntoTreinamento, conjuntoTeste)
 
-    print ('Train set: ' + repr(len(trainingSet)))
-    print ('Test set: ' + repr(len(testSet)))
+    print ('Conjunto de treinamento: ' + repr(len(conjuntoTreinamento)))
+    print ('Conjunto de teste: ' + repr(len(conjuntoTeste)))
 
-    predictions=[]
-    k = 3 # k is the parameter
+    predicoes=[]
+    k = 3 # k eh o parametero
     
-    for x in range(len(testSet)):
+    for x in range(len(conjuntoTeste)):
         
-        neighbors = getNeighbors(trainingSet, testSet[x], k)
-        result = getResponse(neighbors)
-        predictions.append(result)
+        vizinhos = recuperarVizinhos(conjuntoTreinamento, conjuntoTeste[x], k)
+        resultado = obterResposta(vizinhos)
+        predicoes.append(resultado)
         
-        print('> predicted=' + repr(result) + ', actual=' + repr(testSet[x][-1]))
+        print('> Previsao=' + repr(resultado) + ', Esperado=' + repr(conjuntoTeste[x][-1]))
     
-    accuracy = getAccuracy(testSet, predictions)
+    precisao = obterPrecisao(conjuntoTeste, predicoes)
     
-    print('Accuracy: ' + repr(accuracy) + '%')
+    print('Precisao: ' + repr(precisao) + '%')
     
 main()
